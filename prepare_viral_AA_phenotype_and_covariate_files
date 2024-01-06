@@ -131,5 +131,24 @@ length(which(is.na(pheno[,i])==F))->testvec[i]}
 pheno[which(is.na(pheno)==T)]<-"NA"
 cbind(haiting_gwid,haiting_gwid,pheno)->pheno2
 colnames(pheno2)[1:2]<-c("FID","IID")
-write.table(pheno2,file="allseq_pheno_6dec",quote=F,col.names=T,row.names=F)
+write.table(pheno2,file="allseq_pheno_6dec",quote=F,col.names=T,row.names=F) ### this is the phenotype file
+
+read.table("Alignment.CDS.1796Int.QC.passed.PCs.txt",header=T)->pca
+inormal <- function(x) qnorm((rank(x, na.last = "keep") - 0.5) / sum(!is.na(x)))
+data.frame(as.factor(gpc2$SEX),as.numeric(as.character(gpc2$AGE)),gpc2[,6:15],pca[,2:6])->pc3
+save.image("allseq_6dec.RData")
+read.table("/well/ansari/users/yem086/haiting/stophcv.covar",header=T)->gpc
+gpc[match(haiting_gwid,gpc$scanID),]->gpc2
+
+pc3[match(haiting_gwid,gpc2[,1]),]->pcnew
+as.matrix(pcnew)->pcnew2
+pcnew2[which(is.na(pcnew2[,1])==T),1]<-"NONE"
+cbind(haiting_gwid,haiting_gwid,pcnew2)->pc4
+colnames(pc4)[1:4]<-c("FID","IID","sex","age")
+write.table(pc4,file="allseq_cov_6dec",quote=F,col.names=F,row.names=F) ### this is the covariate file
+
+### this is the genotype file
+/well/ansari/users/yem086/plink2 --bfile /well/ansari/users/yem086/haiting/stopcv_full_two_fields.bgl.phased --make-bed --out allseq_6dec
+
+
 
