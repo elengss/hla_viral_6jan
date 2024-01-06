@@ -9,4 +9,4 @@ The code should be run in the following order
 5. Conditional_analysis - this conditions on the most significant HLA for secondary signals
 6. Get_sequence_around_significant_AA - this extracts the reference sequence around significant AA for input into IEDB search for epitope and immune activity
 
-There are some other code files in there for analysis that has not bee completed
+There are some other code files in there for analysis that has not been completed
