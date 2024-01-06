@@ -1,0 +1,25 @@
+### this makes forest_plots
+
+read.delim("all_qv_0.05_allsig.txt",header=T)->bigmats2
+library(forestplot)
+for(i in 1:nrow(bigmats2)){
+bigmats2[i,]->bigmatss
+c(bigmatss$all_R_logodds,bigmatss$euro_R_logodds,bigmatss$sa_R_logodds,bigmatss$gt3_R_logodds,bigmatss$gt1_R_logodds)->bvec
+c(bigmatss$all_R_se,bigmatss$euro_R_se,bigmatss$sa_R_se,bigmatss$gt3_R_se,bigmatss$gt1_R_se)->svec
+upper<-bvec+1.96*svec
+lower<-bvec-1.96*svec
+study<-c("all","eur","sa","gt3","gt1")
+beta<-signif(c(bigmatss$all_R_pv,bigmatss$euro_R_pv,bigmatss$sa_R_pv,bigmatss$gt3_R_pv,bigmatss$gt1_R_pv),digits=3)
+base_data <- tibble::tibble(mean  = bvec,
+                            upper = upper,
+                            lower = lower,
+                            study = study,
+                            beta = beta)
+
+pdf(paste("forest_",bigmatss$hla,"_",bigmatss$aa,sep=""))             
+fp<-base_data |>forestplot(labeltext = c(study, beta),
+             clip = c(-10, 10),boxsize = 0.2)
+print(fp)
+dev.off()
+print(i)}
+
