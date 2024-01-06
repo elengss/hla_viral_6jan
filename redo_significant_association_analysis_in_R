@@ -1,0 +1,48 @@
+### this extracts the classical HLA alleles from the files
+
+ls *hybrid > allfiles
+while read line
+do
+grep HLA $line > $line.hla
+echo $line
+done < allfiles
+
+read.table("allfiles",header=F)->af
+matrix(nrow=0,ncol=15)->bigmat
+for(i in 1:nrow(af)){
+read.table(paste(af[i,1],".hla",sep=""),header=F)->hla
+data.frame(rep(af[i,1],nrow(hla)),hla)->df
+rbind(bigmat,df)->bigmat
+print(i)
+}
+save(bigmat,file="bigmat_hla.Rd")
+
+####### this removes the 2 digit HLA
+load("/well/ansari/users/yem086/haiting/results_6dec/hla_allseq_6jan/bigmat_hla.Rd")
+bigmat[order(bigmat$P),]->bmo
+bmo[grep("HLA",bmo[,"ID"]),]->bmo2
+bmo2[which(bmo2$ERRCODE=="."),]->bmo3
+sapply(strsplit(bmo3[,1],"\\."),"[[",2)->aa
+gsub("X","",remove)->remove2
+match(aa,remove2)->idx
+bmo3[which(is.na(idx)==T),]->bmo4
+
+bmo4[grep("HLA",bmo4$ID),]->hla
+sapply(strsplit(hla$ID,":"),"[[",1)->hla$hla2d
+check<-vector()
+for(i in 1:nrow(hla)){
+length(strsplit(hla$ID[i],":")[[1]])->check[i]
+}
+paste(hla$hla2d,bmo4[,1])->key
+unique(key)->uk
+hla[which(check==1),]->hla_single
+hla[which(check==2),]->hla_double
+
+vector()->dp
+for(i in 1:nrow(hla_single)){
+hla_double[match(hla_single$hla2d[i],hla_double$hla2d),"P"]->dp[i]}
+
+pdf("single_vs_double_pv_log.pdf")
+plot(-log10(hla_single$P),-log10(dp))
+dev.off()
+
