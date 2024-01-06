@@ -35,7 +35,9 @@ print(i)}
 
 #### do viral manhattan
 library(qqman)
-
+load("bigmat_hla.Rd")
+read.table("header",header=F,comment.char="")->h
+c("aa",h[1,])->colnames(bigmat)
 read.delim("all_qv_0.05_allsig.txt",header=T)->bigmats
 for(i in 1:nrow(bigmats)){
 bigmat[which(bigmat[,"ID"]==bigmats[i,2]),]->temp
@@ -45,8 +47,9 @@ unique(pos)->upos
 temp2[match(upos,pos),]->temp3
 sapply(strsplit(sapply(strsplit(temp3[,1],"\\."),"[[",2),"_"),"[[",1)->pos2
 data.frame(rep(1,nrow(temp3)),as.numeric(as.character(pos2)),as.numeric(as.character(pos2)),temp3$P)->df
+na.omit(df)->df
 colnames(df)<-c("CHR","BP","SNP","P")
-pdf(paste(bigmats[i,2],"_mh.pdf",sep=""))
+pdf(paste(bigmats[i,2],"_mh_6jan.pdf",sep=""))
 manhattan(subset(df,CHR == 1))
 dev.off()
 print(i)}
