@@ -1,0 +1,69 @@
+library(seqinr)
+load("allmat_6dec.Rd")
+### match to ref to remove dashes then remove last AA as stop codon
+read.fasta("/well/ansari/users/yem086/haiting/Alignment.AA.1998Int+REF.fasta")->faref
+###read.fasta("/well/ansari/users/yem086/haiting/ref77.fasta")->ref
+allmatnew->allmatnew2
+allmatnew2[,which(faref[[1]]!="-")]->allmatnewshort
+allmatnewshort[,-ncol(allmatnewshort)]->allmatnew3
+
+list()->alltab
+for(k in 1:nrow(allmatnew3)){
+paste(allmatnew3[k,],collapse="")->test
+vector()->km
+for(i in 1:(nchar(test)-8)){
+substr(test,i,i+9)->km[i]}
+print(k)
+table(km)->alltab[[k]]}
+
+allnames<-vector()
+for(i in 1:length(alltab)){
+c(names(alltab[[i]]),allnames)->allnames
+print(i)
+}
+
+unique(allnames)->ua
+frmat<-matrix(0,nrow=length(alltab),ncol=length(ua))
+rownames(frmat)<-rownames(allmatnew3)
+colnames(frmat)<-ua
+for(i in 1:length(alltab)){
+alltab[[i]]->temp
+for(k in 1:length(temp)){
+frmat[i,which(colnames(frmat)==names(temp)[k])]<-temp[k]}
+print(i)}
+save(frmat,file="frmat_k9_allseq.Rd")
+
+load("frmat_k9_allseq.Rd")
+library(stringr)
+frmat[,-(grep("-",colnames(frmat)))]->frmat2
+frmat2[,-(grep("x",colnames(frmat2)))]->frmat3
+frmat3->frmat2
+check<-vector()
+for(i in 1:ncol(frmat2)){
+length(which(frmat2[,i]==0))->check[i]
+}
+which(check<=(nrow(frmat)*0.01))->idx1
+which(check>=(nrow(frmat)*0.99))->idx2
+c(idx1,idx2)->idx
+frmat2[,-idx]->frmat3
+str_count(colnames(frmat3),"-")->testv1
+str_count(colnames(frmat3),"x")->testv2
+testv1+testv2->test
+frmat3[,which(test==0)]->frmat3
+sapply(strsplit(rownames(frmat3),"-"),"[[",3)->gwid
+data.frame(gwid,gwid,frmat3)->kmergwas
+colnames(kmergwas)[1:2]<-c("FID","IID")
+write.table(kmergwas,file="kmer9_6dec",col.names=T,row.names=F,quote=F,sep="\t")
+
+read.table("kmer9_6dec",header=T)->x
+colnames(x)[3:ncol(x)]->cn
+write.table(cn,file="/well/ansari/users/yem086/haiting/pheno_kmer9",col.names=F,row.names=F,quote=F,sep="\t")
+
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/kmer9_6dec",header=T)->x
+x->x2
+for(i in 3:ncol(x)){
+x[,i]+1->x2[,i]
+print(i)
+}
+write.table(x2,file="/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/kmer9_6dec",col.names=T,row.names=F,quote=F,sep="\t")
+
