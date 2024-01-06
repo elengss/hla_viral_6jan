@@ -253,5 +253,81 @@ mat_vl[match(check,rownames(mat_vl)),]->mat_vl2
 save(mat_vl,file="matdecomp_all_6jan.Rd")
 
 
+#### do an anova to check for interaction between viral AA and HLA
+
+H1 – outcome ~ HLA + viral + hla * viral + covariates
+H0 – outcome ~ HLA + viral + covariates
+Anova(H0,H1)
+
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_cov_6dec",header=F)->cov
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6jan",header=T)->pheno
+read.delim("/well/ansari/users/yem086/haiting/stopcv_full_two_fields.bgl.phased.new.vcf",skip=6)->vcf
+
+read.table("/well/ansari/users/yem086/haiting/results_6dec/hla_allseq_6jan/all_qv_0.05.txt",header=T)->bmo5
+read.delim("/well/ansari/users/yem086/haiting/HCV-Clinical-08Dec2023.txt",header=T)->clin
+
+vcf[,10:ncol(vcf)]->geno
+colnames(geno)<-sapply(strsplit(colnames(geno),"_"),"[[",1)
+intersect(cov[,1],colnames(geno))->inter
+geno[,match(inter,colnames(geno))]->genom_all
+vcf$ID->rownames(genom_all)
+cov[match(inter,cov[,1]),]->covm_all
+pheno[match(inter,pheno[,1]),]->phenom_all
+
+data.frame(clin[,"GWAS.ID.Valid.4383."],clin[,"Cirrhosis.ever.diagnosed.Valid.7610."])->vl
+test<-vector(length=nrow(vl))
+test[grep("Yes",vl[,2])]<-1
+test[which(vl[,2]=="No")]<-0
+data.frame(vl,test)->vl2
+vl2[which(is.na(test)==F),]->vl3
+vl2[match(inter,vl[,1]),3]->vlm
+
+unlist(genom_all["HLA_A*01:01",])->hla
+rep(0,length(hla))->dosage
+dosage[which(hla=="0/1")]<-1
+dosage[which(hla=="1/0")]<-1
+dosage[which(hla=="1/1")]<-2
+
+phenom_all[,"X1444_y"]->y
+newy<-y-1
+glm(as.numeric(vlm)~newy+dosage+V3+V4+V5+V6+V7+V8+V9+V10+V11+V12+V13+V14+V15+V16+V17+V18+V19,data=covm_all,family=binomial(link="logit"))->tmp0
+glm(as.numeric(vlm)~newy+dosage+newy*dosage+V3+V4+V5+V6+V7+V8+V9+V10+V11+V12+V13+V14+V15+V16+V17+V18+V19,data=covm_all,family=binomial(link="logit"))->tmp1
+anova(tmp0,tmp1,test="Chisq")[["Pr(>Chi)"]][2]
+
+
+data.frame(clin[,"GWAS.ID.Valid.4383."],clin[,"Decompensation.ever.diagnosed.Valid.7610."])->vl
+test<-vector(length=nrow(vl))
+test[grep("Yes",vl[,2])]<-1
+test[which(vl[,2]=="No")]<-0
+data.frame(vl,test)->vl2
+vl2[which(is.na(test)==F),]->vl3
+vl2[match(inter,vl[,1]),3]->vlm
+
+unlist(genom_all["HLA_A*01:01",])->hla
+rep(0,length(hla))->dosage
+dosage[which(hla=="0/1")]<-1
+dosage[which(hla=="1/0")]<-1
+dosage[which(hla=="1/1")]<-2
+
+phenom_all[,"X1444_y"]->y
+newy<-y-1
+glm(as.numeric(vlm)~newy+dosage+V3+V4+V5+V6+V7+V8+V9+V10+V11+V12+V13+V14+V15+V16+V17+V18+V19,data=covm_all,family=binomial(link="logit"))->tmp0
+glm(as.numeric(vlm)~newy+dosage+newy*dosage+V3+V4+V5+V6+V7+V8+V9+V10+V11+V12+V13+V14+V15+V16+V17+V18+V19,data=covm_all,family=binomial(link="logit"))->tmp1
+anova(tmp0,tmp1,test="Chisq")[["Pr(>Chi)"]][2]
+
+
+unlist(genom_all["HLA_B*08:01",])->hla
+rep(0,length(hla))->dosage
+dosage[which(hla=="0/1")]<-1
+dosage[which(hla=="1/0")]<-1
+dosage[which(hla=="1/1")]<-2
+
+phenom_all[,"X1646_m"]->y
+newy<-y-1
+glm(as.numeric(vlm)~newy+dosage+V3+V4+V5+V6+V7+V8+V9+V10+V11+V12+V13+V14+V15+V16+V17+V18+V19,data=covm_all,family=binomial(link="logit"))->tmp0
+glm(as.numeric(vlm)~newy+dosage+newy*dosage+V3+V4+V5+V6+V7+V8+V9+V10+V11+V12+V13+V14+V15+V16+V17+V18+V19,data=covm_all,family=binomial(link="logit"))->tmp1
+anova(tmp0,tmp1,test="Chisq")[["Pr(>Chi)"]][2]
+
+
 
 
