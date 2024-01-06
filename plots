@@ -16,10 +16,20 @@ base_data <- tibble::tibble(mean  = bvec,
                             study = study,
                             beta = beta)
 
-pdf(paste("forest_",bigmatss$hla,"_",bigmatss$aa,sep=""))             
+pdf(paste("forest_",bigmatss$hla,"_",bigmatss$aa,".pdf",sep=""))             
 fp<-base_data |>forestplot(labeltext = c(study, beta),
              clip = c(-10, 10),boxsize = 0.2)
 print(fp)
 dev.off()
+print(i)}
+
+#### prepare files for locuszoom
+
+for(i in 1:nrow(bigmats2)){
+read.table(paste("./results_6dec/hla_allseq/hla.",bigmats2[i,1],".glm.logistic.hybrid",sep=""),header=T,comment.char="")->x
+x[which(x$ERRCODE=="."),]->x2
+data.frame(x2[,1:2],x2$REF,x2$ALT,x2$P)->df
+colnames(df)<-c("Chromosome","Position","Ref.allele","Alt.allele","p-value")
+write.table(df,paste("locus_",bigmats2[i,1],sep=""),col.names=T,row.names=F,quote=F,sep="\t")
 print(i)}
 
