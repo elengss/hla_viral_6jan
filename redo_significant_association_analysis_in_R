@@ -69,7 +69,7 @@ intersect(inter1,cov[,1])->inter
 geno[,match(inter,colnames(geno))]->genom_eur
 vcf$ID->rownames(genom_eur)
 cov[match(inter,cov[,1]),]->covm_eur
-read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6dec",header=T)->pheno
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6jan",header=T)->pheno
 pheno[match(inter,pheno[,1]),]->phenom_eur
 
 read.delim("/gpfs3/well/ansari/shared/Boson_multiomics/data/kir/stophcv.1000G.admixture.K5.pop.txt")->pop
@@ -164,7 +164,7 @@ intersect(inter1,cov[,1])->inter
 geno[,match(inter,colnames(geno))]->genom_eur
 vcf$ID->rownames(genom_eur)
 cov[match(inter,cov[,1]),]->covm_eur
-read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6dec",header=T)->pheno
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6jan",header=T)->pheno
 pheno[match(inter,pheno[,1]),]->phenom_eur
 
 hla_double2$ID->hla
@@ -196,7 +196,7 @@ intersect(inter1,cov[,1])->inter
 geno[,match(inter,colnames(geno))]->genom_eur
 vcf$ID->rownames(genom_eur)
 cov[match(inter,cov[,1]),]->covm_eur
-read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6dec",header=T)->pheno
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6jan",header=T)->pheno
 pheno[match(inter,pheno[,1]),]->phenom_eur
 
 hla_double2$ID->hla
