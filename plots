@@ -33,3 +33,21 @@ colnames(df)<-c("Chromosome","Position","Ref.allele","Alt.allele","p-value")
 write.table(df,paste("locus_",bigmats2[i,1],sep=""),col.names=T,row.names=F,quote=F,sep="\t")
 print(i)}
 
+#### do viral manhattan
+library(qqman)
+
+read.delim("all_qv_0.05_allsig.txt",header=T)->bigmats
+for(i in 1:nrow(bigmats)){
+bigmat[which(bigmat[,"ID"]==bigmats[i,2]),]->temp
+temp[order(temp$P),]->temp2
+sapply(strsplit(sapply(strsplit(temp2[,1],"\\."),"[[",2),"_"),"[[",1)->pos
+unique(pos)->upos
+temp2[match(upos,pos),]->temp3
+sapply(strsplit(sapply(strsplit(temp3[,1],"\\."),"[[",2),"_"),"[[",1)->pos2
+data.frame(rep(1,nrow(temp3)),as.numeric(as.character(pos2)),as.numeric(as.character(pos2)),temp3$P)->df
+colnames(df)<-c("CHR","BP","SNP","P")
+pdf(paste(bigmats[i,2],"_mh.pdf",sep=""))
+manhattan(subset(df,CHR == 1))
+dev.off()
+print(i)}
+
