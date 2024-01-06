@@ -131,8 +131,25 @@ length(which(is.na(pheno[,i])==F))->testvec[i]}
 pheno[which(is.na(pheno)==T)]<-"NA"
 cbind(haiting_gwid,haiting_gwid,pheno)->pheno2
 colnames(pheno2)[1:2]<-c("FID","IID")
-write.table(pheno2,file="allseq_pheno_6dec",quote=F,col.names=T,row.names=F) ### this is the phenotype file
+write.table(pheno2,file="allseq_pheno_6dec",quote=F,col.names=T,row.names=F)
 
+#### this removes AA where there are only 2 AA at the position
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6dec",header=T)->x
+x[3:ncol(x)]->x2
+colnames(x2)->cn
+sapply(strsplit(cn,"_"),"[[",1)->pos
+table(pos)->post
+names(post)[which(post==2)]->double
+### select 1 for removal
+cn[match(double,pos)]->remove
+
+match(colnames(x2),remove)->idx
+x2[,which(is.na(idx)==T)]->x3
+gsub("X","",colnames(x3))->colnames(x3)
+cbind(x[,1:2],x3)->x4
+write.table(x4,file="/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6jan",col.names=T,row.names=F,quote=F)
+
+#### make covariate file
 read.table("Alignment.CDS.1796Int.QC.passed.PCs.txt",header=T)->pca
 inormal <- function(x) qnorm((rank(x, na.last = "keep") - 0.5) / sum(!is.na(x)))
 data.frame(as.factor(gpc2$SEX),as.numeric(as.character(gpc2$AGE)),gpc2[,6:15],pca[,2:6])->pc3
