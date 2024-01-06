@@ -1,0 +1,135 @@
+library(seqinr)
+read.fasta("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/Alignment.AA.1796Int.QC.passed.fasta")->fa
+names(fa)->nfa
+sapply(strsplit(nfa,"-"),"[[",4)->gt
+sapply(strsplit(nfa,"-"),"[[",3)->haiting_gwid
+sapply(strsplit(nfa,"-"),"[[",1)->haiting_wtcid
+
+#### subset to included samples
+read.table("Alignment.CDS.1796Int.QC.passed.PCs.txt",header=T)->pca
+setequal(nfa,pca[,1])
+
+matrix(ncol=length(fa[[1]]),nrow=length(nfa))->allmat
+for(j in 1:length(nfa)){
+for(k in 1:length(fa[[1]])){try({
+fa[[j]][k] -> allmat[j,k]
+})
+print(j)}}
+
+allmat->allmatnew
+nfa->rownames(allmatnew)
+save(allmatnew,file="allmat_6dec.Rd")
+
+#####
+
+load("allmat_6dec.Rd")
+### match to ref to remove dashes then remove last AA as stop codon
+read.fasta("/well/ansari/users/yem086/haiting/Alignment.AA.1998Int+REF.fasta")->faref
+###read.fasta("/well/ansari/users/yem086/haiting/ref77.fasta")->ref
+allmatnew->allmatnew2
+allmatnew2[,which(faref[[1]]!="-")]->allmatnewshort
+allmatnewshort[,-ncol(allmatnewshort)]->allmatnew3
+
+allmatnew3->aam
+minvec<-vector()
+maxvec<-vector()
+lenvec<-vector()
+seq(1,ncol(aam))->colnames(aam)
+for(i in 1:ncol(aam)){
+aam[,i]->tmp 
+
+which(tmp=="x")->idx1
+which(tmp=="-")->idx2
+c(idx1,idx2)->idx
+if(length(idx)>0){
+tmp[-idx]->tmp2 ### removes x to calculate maf
+min(table(tmp2))->minvec[i] ### get occurence of rarest AA
+max(table(tmp2))->maxvec[i] ### get occurence of commonest AA
+length(table(tmp2))->lenvec[i]} else{
+tmp->tmp2 ### removes x to calculate maf
+min(table(tmp2))->minvec[i] ### get occurence of rarest AA
+max(table(tmp2))->maxvec[i] ### get occurence of commonest AA
+length(table(tmp2))->lenvec[i] #### get total number of AA at that position
+}
+}
+inc<-rep(1,ncol(aam)) ### vector of include or not
+inc[which(maxvec>=(nrow(aam)*0.99))]<-0 #### do not include if commonest AA > 99%
+inc[which(lenvec==1)]<-0 ### do not include if only 1 AA
+aam[,which(inc==1)]->aam2 #### this has filtered out single AA and also those with maximum AA being above 99%
+
+aamlist<-list()
+for(i in 1:ncol(aam2)){
+aam2[,i]->temp
+names(temp)<-rownames(aam2)
+which(temp=="x")->idx1
+which(temp=="-")->idx2
+c(idx1,idx2)->idx
+ifelse(length(idx)>0,temp[-idx]->temp2,temp->temp2)
+if(length(temp2)>0.75*nrow(aam2)){ ### do not include less than 75% are non x and non -
+if(length(table(temp2))>1){
+names(table(temp2))->nt
+aamat<-matrix(nrow=length(temp2),ncol=length(nt))
+rownames(aamat)<-names(temp2)
+for(j in 1:length(nt)){
+testvec<-rep(0,length(temp2))
+testvec[which(temp2==nt[j])]<-1
+testvec->aamat[,j]
+paste(colnames(aam2)[i],nt,sep="_")->colnames(aamat)}
+apply(aamat,2,as.numeric)->aamat
+which(colSums(aamat)<=(nrow(aamat)*0.01))->idx1
+which(colSums(aamat)>=(nrow(aamat)*0.99))->idx2 #### added
+c(idx1,idx2)->idx
+if(length(idx)>0){aamat[,-idx]->aamat3} else {aamat->aamat3}
+if(length(aamat3)>0){
+if(length(aamat3)==nrow(aamat)){
+names(temp2)->names(aamat3)
+aamat3->aamlist[[i]]
+colnames(aamat)[-idx]->names(aamlist)[i]} else {
+##print(max(colSums(aamat3)))
+##which(colSums(aamat3)==max(colSums(aamat3)))->idx2
+##aamat3[,-idx2]->aamat2
+names(temp2)->rownames(aamat3)
+aamat3->aamlist[[i]]
+colnames(aam2)[i]->names(aamlist)[i]
+}}
+print(i)}}}
+
+#### remove all zero length entries
+cl<-vector()
+for(i in 1:length(aamlist)){
+length(aamlist[[i]])->cl[i]
+}
+aamlist[which(cl!=0)]->aamlist2
+
+
+read.fasta("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/Alignment.AA.1796Int.QC.passed.fasta")->fa
+names(fa)->nfa
+matrix(nrow=length(nfa),ncol=0) -> pheno
+
+cn<-vector()
+for(i in 1:length(aamlist2)){
+aamlist2[[i]]->temp
+if(is.matrix(temp)=="TRUE"){
+temp[match(nfa,rownames(temp)),]->temp2
+cbind(pheno,temp2)->pheno
+c(cn,colnames(temp))->cn
+} else {
+temp[match(nfa,names(temp))]->temp2
+cbind(pheno,temp2)->pheno
+c(cn,names(aamlist2)[i])->cn
+}
+print(i)
+}
+colnames(pheno)<-cn
+pheno[which(pheno==1)]<-2
+pheno[which(pheno==0)]<-1
+
+testvec<-vector()
+for(i in 1:ncol(pheno)){
+length(which(is.na(pheno[,i])==F))->testvec[i]}
+
+pheno[which(is.na(pheno)==T)]<-"NA"
+cbind(haiting_gwid,haiting_gwid,pheno)->pheno2
+colnames(pheno2)[1:2]<-c("FID","IID")
+write.table(pheno2,file="allseq_pheno_6dec",quote=F,col.names=T,row.names=F)
+
