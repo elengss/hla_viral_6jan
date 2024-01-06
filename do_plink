@@ -1,0 +1,15 @@
+This is template.q for HLA association
+
+#!/bin/bash
+#SBATCH -A ansari.prj 
+#SBATCH -J my-job 
+#SBATCH -o my-job-%j.out 
+#SBATCH -e my-job-%j.err 
+#SBATCH -p short
+
+/well/ansari/users/yem086/plink2 --bfile /well/ansari/users/yem086/haiting/allseq_6dec --pheno-name zzz --pheno /well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6jan --maf 0.01 --geno 0.1 --hwe 0.000001 --covar /well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_cov_6dec --glm hide-covar --covar-variance-standardize --out /well/ansari/users/yem086/haiting/results_6dec/hla_allseq_6jan/hla
+
+  while read line
+do
+sed "s/zzz/$line/g" template.q > $line.q
+done</well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/pheno_short_6jan
