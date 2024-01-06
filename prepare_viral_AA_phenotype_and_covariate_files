@@ -149,6 +149,10 @@ gsub("X","",colnames(x3))->colnames(x3)
 cbind(x[,1:2],x3)->x4
 write.table(x4,file="/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6jan",col.names=T,row.names=F,quote=F)
 
+### this writes a list of AA tested for template.q file
+
+write.table(colnames(x3),file="/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/pheno_short_6jan",col.names=F,row.names=F,quote=F)
+
 #### make covariate file
 read.table("Alignment.CDS.1796Int.QC.passed.PCs.txt",header=T)->pca
 inormal <- function(x) qnorm((rank(x, na.last = "keep") - 0.5) / sum(!is.na(x)))
