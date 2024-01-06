@@ -13,3 +13,60 @@ This is template.q for HLA association
 do
 sed "s/zzz/$line/g" template.q > $line.q
 done</well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/pheno_short_6jan
+
+#### this is the template for Kmer
+
+#!/bin/bash
+#SBATCH -A ansari.prj 
+#SBATCH -J my-job 
+#SBATCH -o my-job-%j.out 
+#SBATCH -e my-job-%j.err 
+#SBATCH -p short
+
+/well/ansari/users/yem086/plink2 --bfile /well/ansari/users/yem086/haiting/allseq_6dec --pheno-name zzz --pheno /well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/kmer9_6dec --covar /well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_cov_6dec --glm hide-covar --covar-variance-standardize --out /well/ansari/users/yem086/haiting/results_6dec/kmer_allseq_6jan/9/hla --maf 0.01 --geno 0.1 --hwe 0.000001
+
+while read line
+do
+sed "s/zzz/$line/g" template.q > $line.q
+done</well/ansari/users/yem086/haiting/pheno_kmer9
+
+#### this is the template for GWAS
+#!/bin/bash
+#SBATCH -A ansari.prj 
+#SBATCH -J my-job 
+#SBATCH -o my-job-%j.out 
+#SBATCH -e my-job-%j.err 
+#SBATCH -p short
+
+cd /well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/
+/well/ansari/users/yem086/plink2 --pfile /gpfs3/well/ansari/users/yem086/haiting/geno/stophcv.chrvvv --double-id --pheno allseq_cov_6dec --pheno-name zzz --covar allseq_cov_6dec --covar-variance-standardize --output-min-p 1e-500 --glm hide-cover --out /well/ansari/users/yem086/haiting/results_6dec/gwas_allseq/vvv --maf 0.01 --geno 0.1 --hwe 0.000001
+
+
+for i in {1..22}
+do
+sed "s/vvv/$i/g" template.q > ./$i/template.q
+done
+
+for i in {1..22}
+do
+cd $i
+while read line
+do
+sed "s/zzz/$line/g" template.q > $line.q
+done<../pheno_nox
+cd ..
+echo $i
+done
+
+do
+cd $i
+rm all.qsub
+for zzz in *.q
+do
+echo "sbatch" $zzz >> all.qsub
+done
+chmod 777 all.qsub
+cd ..
+echo $i
+done
+
