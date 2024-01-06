@@ -64,7 +64,8 @@ pop2[which(pop2$K5.5>0.8),]->pop_eur
 read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_cov_6dec",header=F)->cov
 vcf[,10:ncol(vcf)]->geno
 colnames(geno)<-sapply(strsplit(colnames(geno),"_"),"[[",1)
-intersect(pop_eur[,1],colnames(geno))->inter
+intersect(pop_eur[,1],colnames(geno))->inter1
+intersect(inter1,cov[,1])->inter
 geno[,match(inter,colnames(geno))]->genom_eur
 vcf$ID->rownames(genom_eur)
 cov[match(inter,cov[,1]),]->covm_eur
@@ -75,7 +76,8 @@ read.delim("/gpfs3/well/ansari/shared/Boson_multiomics/data/kir/stophcv.1000G.ad
 pop[which(pop$Study == "STOPHCV"),]->pop2
 pop2[which(pop2$K5.4>0.5),]->pop_sa
 
-intersect(pop_sa[,1],colnames(geno))->inter
+intersect(pop_sa[,1],colnames(geno))->inter1
+intersect(inter1,cov[,1])->inter
 geno[,match(inter,colnames(geno))]->genom_sa
 vcf$ID->rownames(genom_sa)
 cov[match(inter,cov[,1]),]->covm_sa
@@ -157,7 +159,8 @@ gtgw[grep("1",gtgw[,2]),1]->gw_1
 gtgw[grep("3",gtgw[,2]),1]->gw_3
 
 read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_cov_6dec",header=F)->cov
-intersect(gw_1,colnames(geno))->inter
+intersect(gw_1,colnames(geno))->inter1
+intersect(inter1,cov[,1])->inter
 geno[,match(inter,colnames(geno))]->genom_eur
 vcf$ID->rownames(genom_eur)
 cov[match(inter,cov[,1]),]->covm_eur
@@ -188,7 +191,8 @@ save(mat_gt1,file="mat_gt1_6jan.Rd")
 gtgw[grep("3",gtgw[,2]),1]->gw_3
 
 read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_cov_6dec",header=F)->cov
-intersect(gw_3,colnames(geno))->inter
+intersect(gw_3,colnames(geno))->inter1
+intersect(inter1,cov[,1])->inter
 geno[,match(inter,colnames(geno))]->genom_eur
 vcf$ID->rownames(genom_eur)
 cov[match(inter,cov[,1]),]->covm_eur
