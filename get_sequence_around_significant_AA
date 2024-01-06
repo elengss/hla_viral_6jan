@@ -1,0 +1,35 @@
+load("allmat_6dec.Rd")
+read.fasta("/well/ansari/users/yem086/haiting/Alignment.AA.1998Int+REF.fasta")->faref
+allmatnew->allmatnew2
+allmatnew2[,which(faref[[1]]!="-")]->allmatnewshort
+faref[[1]][which(faref[[1]]!="-")]->ref2
+allmatnewshort[,-ncol(allmatnewshort)]->allmatnew3
+
+n<-1444
+ref2[(n-4):(n+4)]->test
+paste(test,collapse="")
+"lmtgftgdf"
+
+n<-1646
+ref2[(n-4):(n+4)]->test
+paste(test,collapse="")
+"tkyimtcms"
+
+n<-2537
+ref2[(n-4):(n+4)]->test
+paste(test,collapse="")
+"rkavahins"
+
+read.fasta("/well/ansari/users/yem086/haiting/ref77.fasta")->ref
+ref[[1]][which(ref[[1]]!="-")]->ref2
+
+> ref2[1444]
+[1] "g"
+> ref2[1646]
+[1] "g"
+> ref2[2537]
+[1] "j"
+> 
+
+1444 and 1646 are in NS3
+2537 is in NS5A
