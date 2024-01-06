@@ -1,0 +1,31 @@
+[yem086@rescomp2 gwas_allseq]$ cat getmin.R
+read.table("allfiles",header=F)->af
+for(i in 1:nrow(af)){
+read.table(af[i,1],comment.char="",header=T)->x
+x[order(x$P),]->new
+new[which(new$P<0.001),]->new2
+write.table(new2,file=paste(af[i,1],"_min",sep=""),col.names=T,row.names=F,quote=F)
+print(i)}
+
+[yem086@rescomp2 gwas_allseq]$ cat summarisemin.R
+bigmat<-matrix(nrow=0,ncol=15)
+read.table("allmin",header=F)->am
+for(i in 1:nrow(am)){
+read.table(am[i,1],header=T)->x
+data.frame(rep(am[i,1],nrow(x)),x)->tmp
+rbind(bigmat,tmp)->bigmat
+print(i)
+}
+save(bigmat,file="bigmat.Rd")
+
+allmat<-matrix(nrow=0,ncol=15)
+for(i in 1:22){
+load(paste("/gpfs3/well/ansari/users/yem086/haiting/results_6dec/gwas_allseq/",i,"/bigmat.Rd",sep=""))
+bigmat[which(bigmat$ERRCODE=="."),]->bigmat2
+bigmat2[which(bigmat2$P<0.00000005/3880),]->bigmat3
+colnames(bigmat)->colnames(bigmat3)
+rbind(allmat,bigmat3)->allmat
+print(i)
+}
+save(allmat,file="allmat.Rd")
+
