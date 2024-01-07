@@ -245,8 +245,8 @@ check3[which(mat_gt3[,4]>1.87906*10^(-05))]<-1
 check4[which(mat_gt1[,4]>1.87906*10^(-05))]<-1
 check1+check2+check3+check4->check
 
-
-data.frame(aa,hla,hla_double2$OR,hla_double2$P,hla_double2$adj,mat_all,mat_eur,mat_sa,mat_gt3,mat_gt1)->df
+sapply(strsplit(hla_double2[,1],"\\."),"[[",2)->aa
+data.frame(aa,hla_double2$ID,hla_double2$OR,hla_double2$P,hla_double2$adj,mat_all,mat_eur,mat_sa,mat_gt3,mat_gt1)->df
 colnames(df)<-c("aa","hla","all_ancestry_plink_OR","all_ancestry_plink_PV","plink_qvalue","all_R_logodds","all_R_se","all_R_Zscore","all_R_pv","hla_freq_all","pheno=1_all","pheno=0_all","euro_R_logodds","euro_R_se","euro_R_Zscore","euro_R_pv","hla_freq_eur","pheno=1_eur","pheno=0_eur","sa_R_logodds","sa_R_se","sa_R_Zscore","sa_R_pv","hla_freq_sa","pheno=1_sa","pheno=0_sa","gt3_R_logodds","gt3_R_se","gt3_R_Zscore","gt3_R_pv","hla_freq_gt3","pheno=1_gt3","pheno=0_gt3","gt1_R_logodds","gt1_R_se","gt1_R_Zscore","gt1_R_pv","hla_freq_gt1","pheno=1_gt1","pheno=0_gt1")
 write.table(df,file="all_qv_0.05.txt",quote=F,col.names=T,row.names=F,sep="\t")
 df[which(check==0),]->df2
