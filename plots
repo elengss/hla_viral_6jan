@@ -16,7 +16,7 @@ base_data <- tibble::tibble(mean  = bvec,
                             study = study,
                             beta = beta)
 
-pdf(paste("forest_",bigmatss$hla,"_",bigmatss$aa,".pdf",sep=""))             
+pdf(paste("forest_",bigmatss$hla,"_",bigmatss$aa,".7jan.pdf",sep=""))             
 fp<-base_data |>forestplot(labeltext = c(study, beta),
              clip = c(-10, 10),boxsize = 0.2)
 print(fp)
