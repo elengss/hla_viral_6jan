@@ -29,3 +29,191 @@ print(i)
 }
 save(allmat,file="allmat.Rd")
 
+#### this breaks up the allmat object into separate files for each viral AA
+
+load("allmat.Rd")
+allmat[order(allmat$P),]->allmat2
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6dec",header=T)->x
+x[3:ncol(x)]->x2
+colnames(x2)->cn
+sapply(strsplit(cn,"_"),"[[",1)->pos
+table(pos)->post
+names(post)[which(post==2)]->double
+### select 1 for removal
+cn[match(double,pos)]->remove
+gsub("X","",remove)->remove2
+sapply(strsplit(allmat2[,1],"\\."),"[[",2)->aa
+aa->allmat2[,1]
+match(aa,remove2)->idx
+allmat2[which(is.na(idx)==T),]->allmat3
+unique(allmat3[,1])->uam
+for(i in 1:length(uam)){
+allmat3[which(allmat3[,1]==uam[i]),]->tmp
+save(tmp,file=paste("./gwas_separate/sep_",uam[i],".Rd",sep=""))
+print(i)}
+}
+
+#### this writes out the significant SNPs for each of these viral AA for doing GWAS in separate groups. It also saves a file topmat2 which has the chromosome and AA in each row
+
+read.table("allrd",header=F)->allrd
+topmat2<-matrix(nrow=0,ncol=15)
+for(i in 1:nrow(allrd)){
+load(allrd[i,1])
+unique(tmp[,2])->uc
+tmp[match(uc,tmp[,2]),]->uc2
+for(k in 1:length(uc)){
+tmp[which(tmp[,2]==uc[k]),]->tmp2
+write.table(tmp2$ID,file=paste("./snps/",tmp2[1,1],"_",tmp2[1,2],sep=""),col.names=F,row.names=F,quote=F)
+}
+rbind(topmat2,uc2)->topmat2
+print(i)
+}
+save(topmat2,file="topmat2.Rd")
+
+#### this writes out sample files for testing
+
+
+read.delim("/well/ansari/users/yem086/haiting/stopcv_full_two_fields.bgl.phased.new.vcf",skip=6)->vcf
+
+read.delim("/gpfs3/well/ansari/shared/Boson_multiomics/data/kir/stophcv.1000G.admixture.K5.pop.txt")->pop
+pop[which(pop$Study == "STOPHCV"),]->pop2
+pop2[which(pop2$K5.5>0.8),]->pop_eur
+
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_cov_6dec",header=F)->cov
+vcf[,10:ncol(vcf)]->geno
+colnames(geno)<-sapply(strsplit(colnames(geno),"_"),"[[",1)
+intersect(pop_eur[,1],colnames(geno))->inter
+geno[,match(inter,colnames(geno))]->genom_eur
+vcf$ID->rownames(genom_eur)
+cov[match(inter,cov[,1]),]->covm_eur
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_pheno_6dec",header=T)->pheno
+pheno[match(inter,pheno[,1]),]->phenom_eur
+write.table(cbind(inter,inter),file="eur_samples",col.names=F,row.names=F,quote=F)
+
+read.delim("/gpfs3/well/ansari/shared/Boson_multiomics/data/kir/stophcv.1000G.admixture.K5.pop.txt")->pop
+pop[which(pop$Study == "STOPHCV"),]->pop2
+pop2[which(pop2$K5.4>0.5),]->pop_sa
+
+vcf[,10:ncol(vcf)]->geno
+colnames(geno)<-sapply(strsplit(colnames(geno),"_"),"[[",1)
+intersect(pop_sa[,1],colnames(geno))->inter
+geno[,match(inter,colnames(geno))]->genom_sa
+vcf$ID->rownames(genom_sa)
+cov[match(inter,cov[,1]),]->covm_sa
+pheno[match(inter,pheno[,1]),]->phenom_sa
+
+write.table(cbind(inter,inter),file="sa_samples",col.names=F,row.names=F,quote=F)
+
+
+library(seqinr)
+read.fasta("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/Alignment.AA.1796Int.QC.passed.fasta")->fa
+names(fa)->nfa
+sapply(strsplit(nfa,"-"),"[[",4)->gt
+sapply(strsplit(nfa,"-"),"[[",3)->haiting_gwid
+data.frame(haiting_gwid,gt)->gtgw
+
+gtgw[grep("1",gtgw[,2]),1]->gw_1
+gtgw[grep("3",gtgw[,2]),1]->gw_3
+
+read.table("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/allseq_cov_6dec",header=F)->cov
+vcf[,10:ncol(vcf)]->geno
+colnames(geno)<-sapply(strsplit(colnames(geno),"_"),"[[",1)
+intersect(gw_1,colnames(geno))->inter_gw1
+intersect(gw_3,colnames(geno))->inter_gw3
+
+write.table(cbind(inter_gw1,inter_gw1),file="gt1_samples",col.names=F,row.names=F,quote=F)
+write.table(cbind(inter_gw3,inter_gw3),file="gt3_samples",col.names=F,row.names=F,quote=F)
+
+##### this is the template.q that is used for separate GWAS in different subgroups for significant SNP-AA pairs
+
+[yem086@rescomp2 gwas_allseq_subset_big]$ cat template.q
+#!/bin/bash
+#SBATCH -A ansari.prj 
+#SBATCH -J my-job 
+#SBATCH -o my-job-%j.out 
+#SBATCH -e my-job-%j.err 
+#SBATCH -p short
+
+cd /well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/
+/well/ansari/users/yem086/plink2 --pfile /gpfs3/well/ansari/users/yem086/haiting/geno/stophcv.chrvvv --double-id --pheno allseq_pheno_6dec --pheno-name zzz --covar allseq_cov_6dec --covar-variance-standardize --output-min-p 1e-500 --glm hide-covar --keep-fam /well/ansari/users/yem086/haiting/eur_samples --extract /well/ansari/users/yem086/haiting/gwas_separate/snps/zzz_vvv --out /well/ansari/users/yem086/haiting/results_6dec/gwas_allseq_subset_big/EUR/chrvvv_zzz --maf 0.01 --geno 0.1 --hwe 0.000001
+/well/ansari/users/yem086/plink2 --pfile /gpfs3/well/ansari/users/yem086/haiting/geno/stophcv.chrvvv --double-id --pheno allseq_pheno_6dec --pheno-name zzz --covar allseq_cov_6dec --covar-variance-standardize --output-min-p 1e-500 --glm hide-covar --keep-fam /well/ansari/users/yem086/haiting/sa_samples --extract /well/ansari/users/yem086/haiting/gwas_separate/snps/zzz_vvv --out /well/ansari/users/yem086/haiting/results_6dec/gwas_allseq_subset_big/SA/chrvvv_zzz --maf 0.01 --geno 0.1 --hwe 0.000001
+/well/ansari/users/yem086/plink2 --pfile /gpfs3/well/ansari/users/yem086/haiting/geno/stophcv.chrvvv --double-id --pheno allseq_pheno_6dec --pheno-name zzz --covar allseq_cov_6dec --covar-variance-standardize --output-min-p 1e-500 --glm hide-covar --keep-fam /well/ansari/users/yem086/haiting/gt3_samples --extract /well/ansari/users/yem086/haiting/gwas_separate/snps/zzz_vvv --out /well/ansari/users/yem086/haiting/results_6dec/gwas_allseq_subset_big/GT3/chrvvv_zzz --maf 0.01 --geno 0.1 --hwe 0.000001
+/well/ansari/users/yem086/plink2 --pfile /gpfs3/well/ansari/users/yem086/haiting/geno/stophcv.chrvvv --double-id --pheno allseq_pheno_6dec --pheno-name zzz --covar allseq_cov_6dec --covar-variance-standardize --output-min-p 1e-500 --glm hide-covar --keep-fam /well/ansari/users/yem086/haiting/gt1_samples --extract /well/ansari/users/yem086/haiting/gwas_separate/snps/zzz_vvv --out /well/ansari/users/yem086/haiting/results_6dec/gwas_allseq_subset_big/GT1/chrvvv_zzz --maf 0.01 --geno 0.1 --hwe 0.000001
+
+while IFS=':' read -r col1 col2
+do 
+sed "s/zzz/$col1/g" template.q >tmp
+sed "s/vvv/$col2/g" tmp > "$col1""$col2"
+done</gpfs3/well/ansari/users/yem086/haiting/gwas_separate/topmat_df2
+
+##### this processes the results
+
+
+ls sep_*.Rd > allsep
+read.table("allsep",header=F)->af
+for(k in 1:nrow(af)){
+load(af[k,1])
+unique(tmp[,2])->uc
+allmat<-matrix(nrow=0,ncol=23)
+for(i in 1:length(uc)){
+try({
+mat<-matrix(nrow=0,ncol=8)
+tmp[which(tmp[,2]==uc[i]),]->tmp2
+matrix(ncol=8,nrow=nrow(tmp2))->mat
+read.table(paste("/well/ansari/users/yem086/haiting/results_6dec/gwas_allseq_subset_big/EUR/chr",uc[i],"_",tmp[1,1],".",tmp[1,1],".glm.logistic.hybrid",sep=""),header=T,comment.char="")->x
+x[match(tmp2$ID,x$ID),"OR"]->mat[,1]
+x[match(tmp2$ID,x$ID),"P"]->mat[,2]
+rm(x)
+})
+try({
+read.table(paste("/well/ansari/users/yem086/haiting/results_6dec/gwas_allseq_subset_big/SA/chr",uc[i],"_",tmp[1,1],".",tmp[1,1],".glm.logistic.hybrid",sep=""),header=T,comment.char="")->x
+x[match(tmp2$ID,x$ID),"OR"]->mat[,3]
+x[match(tmp2$ID,x$ID),"P"]->mat[,4]
+rm(x)
+})
+try({
+read.table(paste("/well/ansari/users/yem086/haiting/results_6dec/gwas_allseq_subset_big/GT3/chr",uc[i],"_",tmp[1,1],".",tmp[1,1],".glm.logistic.hybrid",sep=""),header=T,comment.char="")->x
+x[match(tmp2$ID,x$ID),"OR"]->mat[,5]
+x[match(tmp2$ID,x$ID),"P"]->mat[,6]
+rm(x)
+})
+try({
+read.table(paste("/well/ansari/users/yem086/haiting/results_6dec/gwas_allseq_subset_big/GT1/chr",uc[i],"_",tmp[1,1],".",tmp[1,1],".glm.logistic.hybrid",sep=""),header=T,comment.char="")->x
+x[match(tmp2$ID,x$ID),"OR"]->mat[,7]
+x[match(tmp2$ID,x$ID),"P"]->mat[,8]
+rm(x)
+})
+data.frame(tmp2,mat)->x3
+rbind(allmat,x3)->allmat
+}
+save(allmat,file=paste(af[k,1],".subgroup.Rd",sep=""))
+print(k)}
+
+
+### load up the rest
+smallmat<-matrix(nrow=0,ncol=24)
+read.table("allsep",header=F)->af
+for(k in 1:nrow(af)){
+paste(af[k,1],".subgroup.Rd",sep="")
+check1<-rep(0,nrow(allmat))
+check2<-rep(0,nrow(allmat))
+check3<-rep(0,nrow(allmat))
+check4<-rep(0,nrow(allmat))
+check1[which(allmat$X2>0.05)]<-1
+check2[which(allmat$X4>0.05)]<-1
+check3[which(allmat$X6>0.05)]<-1
+check4[which(allmat$X8>0.05)]<-1
+check1+check2+check3+check4->check
+allmat[which(check==0),]->allmat2
+data.frame(rep(af[k,1],nrow(allmat2)),allmat2)->df
+rbind(smallmat,df)->smallmat
+print(k)}
+
+smallmat[which(is.na(smallmat$X2)==F),]->smallmat2
+smallmat2[which(is.na(smallmat2$X4)==F),]->smallmat3
+smallmat3[which(is.na(smallmat3$X6)==F),]->smallmat4
+smallmat4[which(is.na(smallmat4$X8)==F),]->smallmat5
+
+####### SA has a problem with VIF in COVAR13 so need to repeat SA without COVAR 13 (that's the first viral PC)
+
+
