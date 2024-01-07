@@ -171,5 +171,12 @@ write.table(pc4,file="allseq_cov_6dec",quote=F,col.names=F,row.names=F) ### this
 ### this is the genotype file
 /well/ansari/users/yem086/plink2 --bfile /well/ansari/users/yem086/haiting/stopcv_full_two_fields.bgl.phased --make-bed --out allseq_6dec
 
+#### the vcf file was subsequently processed with plink just to make it smaller and easier to handle
+
+
+#### check where the vcf file came about
+
+/well/ansari/users/yem086/plink2 --vcf stopcv_full_two_fields.bgl.phased.vcf --make-bed --out test
+/well/ansari/users/yem086/plink2 --bfile test --recode vcf --out stopcv_full_two_fields.bgl.phased.new
 
 
