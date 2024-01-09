@@ -1,0 +1,76 @@
+head -1 hla.aaacnwtrge.glm.logistic.hybrid > header
+####### this removes the 2 digit HLA
+read.table("header",header=F,comment.char="")->h
+load("/gpfs3/well/ansari/users/yem086/haiting/results_6dec/kmer_allseq_6jan/9/bigmat_hla.Rd")
+c("aa",h[1,])->colnames(bigmat)
+bigmat[order(bigmat$P),]->bmo
+bmo[grep("HLA",bmo[,"ID"]),]->bmo2
+bmo2[which(bmo2$ERRCODE=="."),]->bmo4
+sapply(strsplit(bmo4[,1],"\\."),"[[",2)->aa
+
+bmo4[grep("HLA",bmo4$ID),]->hla
+sapply(strsplit(hla$ID,":"),"[[",1)->hla$hla2d
+check<-vector()
+for(i in 1:nrow(hla)){
+length(strsplit(hla$ID[i],":")[[1]])->check[i]
+}
+paste(hla$hla2d,bmo4[,1])->key
+unique(key)->uk
+hla[which(check==1),]->hla_single
+hla[which(check==2),]->hla_double
+library(qvalue)
+qvalue(hla_double$P)$qvalues->hla_double$adj
+hla_double[which(hla_double$adj<0.05),]->hla_double2
+
+load("hla_double.Rd")
+load("hla_double2.Rd")
+load("/well/ansari/users/yem086/haiting/Alignment.CDS.1961Int-Azim-PCA-Phylogeny/Alignment.1961Int.QC.all.genotypes/9mer_pos.Rd")
+sapply(strsplit(hla_double2[,1],"\\."),"[[",2)->hla_double2[,1]
+hla_double2[which(nchar(hla_double2[,1])==10),]->hla_double3
+
+sapply(strsplit(hla_double[,1],"\\."),"[[",2)->hla_double[,1]
+hla_double[which(nchar(hla_double[,1])==10),]->hla_double_all
+
+unique(allnames)->anu
+sapply(strsplit(anu,"_"),"[[",2)->seq
+sapply(strsplit(anu,"_"),"[[",1)->pos
+list()->ml
+for(i in 1:nrow(hla_double3)){
+grep(hla_double3[i,1],anu,value=T)->k
+sapply(strsplit(k[1],"_"),"[[",1)->tmp
+seq[which(pos==tmp)]->seq2
+hla_double_all[match(seq2,hla_double_all[,1]),]->ml[[i]]}
+
+
+
+read.delim("/well/ansari/users/yem086/haiting/results_6dec/hla_allseq_6jan/all_qv_0.05.txt",header=T)->df
+
+
+######## extract kmer positions
+
+library(seqinr)
+load("allmat_6dec.Rd")
+### match to ref to remove dashes then remove last AA as stop codon
+read.fasta("/well/ansari/users/yem086/haiting/Alignment.AA.1998Int+REF.fasta")->faref
+allmatnew->allmatnew2
+allmatnew2[,which(faref[[1]]!="-")]->allmatnewshort
+allmatnewshort[,-ncol(allmatnewshort)]->allmatnew3
+
+list()->alltab
+for(k in 1:nrow(allmatnew3)){
+paste(allmatnew3[k,],collapse="")->test
+vector()->km
+for(i in 1:(nchar(test)-8)){
+paste(i,substr(test,i,i+9),sep="_")->km[i]
+}
+print(k)
+table(km)->alltab[[k]]}
+
+allnames<-vector()
+for(i in 1:length(alltab)){
+c(names(alltab[[i]]),allnames)->allnames
+print(i)
+}
+
+save(allnames,file="9mer_pos.Rd")
+
